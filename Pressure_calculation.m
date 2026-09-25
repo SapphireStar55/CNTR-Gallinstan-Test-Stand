@@ -18,10 +18,9 @@
 %   316L SS is partially attacked by Ga alloys via liquid metal embrittlement.
 %   Consider SiC-lined or PTFE-lined vessel, or Hastelloy C-276.
 
-% =========================================================================
 clear; clc; close all;
 
-%% ===== INPUT PARAMETERS =====
+%% INPUT PARAMETERS 
 
 % SiC Plate Properties
 pore_diameter    = 1000e-6;      % Pore diameter [m] (1000 microns)
@@ -37,17 +36,17 @@ gas_type         = 'nitrogen';   % Gas type (informational)
 % Vessel Geometry
 gallinstan_height = 0.05;        % Height of Gallinstan above SiC plate [m]
 
-%% ===== MATERIAL PROPERTIES  (literature-validated) =====
+%% MATERIAL PROPERTIES  (literature-validated) 
 
 T_K = temperature_C + 273.15;   % [K]
 
-% ------------------------------------------------------------------
+
 % Gallinstan at 200°C
 % Surface tension: γ(T) = 587 - 0.0109*(T_K - 283.15) mN/m
 %   Plevachuk et al. (2014) J. Chem. Eng. Data 59, 757 — EGaInSn
 %   Brand Galinstan(R) ~534 mN/m at RT (Handschuh-Wang 2022)
 % Three scenarios to bracket oxidation uncertainty:
-% ------------------------------------------------------------------
+
 gamma_nom  = (587 - 0.0109*(T_K - 283.15)) * 1e-3;  % [N/m] oxide-free EGaInSn
 gamma_low  = 0.400;                                   % [N/m] partial oxidation worst-case
 gamma_high = 0.590;                                   % [N/m] upper bound (brand RT value)
@@ -60,9 +59,8 @@ rho_gallinstan = 6440 + (-0.60) * (temperature_C - 20);  % [kg/m³] at 200°C
 contact_angle_adv_deg = 145;    % Advancing [°] — used for seepage calc (worst case entry)
 contact_angle_rec_deg = 120;    % Receding  [°] — lower bound once Ga has entered pore
 
-% ------------------------------------------------------------------
 % Nitrogen at 200°C, 1 atm  (NIST reference data)
-% ------------------------------------------------------------------
+
 mu_nitrogen  = 2.57e-5;         % Dynamic viscosity [Pa·s]  NIST 473 K
 rho_nitrogen = (101325 * 0.028014) / (8.314 * T_K);  % Ideal gas [kg/m³] = 0.7448
 
@@ -78,9 +76,9 @@ delta_T       = temperature_C - 20;  % Temperature rise from assembly temp [K]
 % Universal constants
 g = 9.81;                        % [m/s^2]
 
-%% ===== PRINT PROPERTY VALUES WITH SOURCE NOTES =====
+%% PRINT PROPERTY VALUES WITH SOURCE NOTES 
 
-fprintf('=== MATERIAL PROPERTIES (literature-corrected) ===\n');
+fprintf('  MATERIAL PROPERTIES (literature-corrected)  \n');
 fprintf('Gallinstan surface tension:\n');
 fprintf('  γ_nominal  (oxide-free EGaInSn, 200°C) : %.4f N/m  [Plevachuk 2014]\n', gamma_nom);
 fprintf('  γ_low      (partial Ga₂O₃ oxidation)   : %.4f N/m  [conservative]\n', gamma_low);
@@ -98,7 +96,7 @@ fprintf('   316L SS has limited resistance; Ga can diffuse along grain boundarie
 fprintf('   at 200°C. Consider: SiC-lined vessel, PTFE liner, or Hastelloy C-276.\n');
 fprintf('   Tungsten and molybdenum are the most resistant structural metals.\n\n');
 
-%% ===== DERIVED PARAMETERS =====
+%%   DERIVED PARAMETERS  
 
 pore_radius             = pore_diameter / 2;
 contact_angle_adv_rad   = deg2rad(contact_angle_adv_deg);
@@ -106,7 +104,7 @@ contact_angle_rec_rad   = deg2rad(contact_angle_rec_deg);
 flow_rate_m3s           = flow_rate_cm3s * 1e-6;
 superficial_velocity    = flow_rate_m3s / active_area;
 
-%% ===== PERMEABILITY (Kozeny-Carman) =====
+%%   PERMEABILITY (Kozeny-Carman)  
 
 kozeny_constant = 180;
 permeability = (porosity^3 * pore_diameter^2) / ...
@@ -117,13 +115,13 @@ diameter_abs = 1e-6;
 absperm = (Sphericity^2 * porosity^3 * diameter_abs^2) / ...
           (150 * (1 - porosity)^2);
 
-%% ===== DIMENSIONLESS SANITY CHECKS =====
+%%   DIMENSIONLESS SANITY CHECKS  
 
 Re_pore = rho_nitrogen * superficial_velocity * pore_diameter / mu_nitrogen;
 Ca      = mu_nitrogen * superficial_velocity / gamma_gallinstan;
 Kn      = lambda_mfp / pore_radius;
 
-fprintf('=== DIMENSIONLESS CHECKS ===\n');
+fprintf('  DIMENSIONLESS CHECKS  \n');
 fprintf('Pore Reynolds number : %.5f  (Darcy valid if Re << 1)\n', Re_pore);
 fprintf('Capillary number     : %.2e  (capillary-dominated if Ca << 1)\n', Ca);
 fprintf('Knudsen number       : %.2e  (continuum OK if Kn << 0.01)\n\n', Kn);
@@ -135,20 +133,20 @@ if Kn > 0.01
     warning('Kn > 0.01: Klinkenberg slip-flow correction applied below.');
 end
 
-%% ===== KLINKENBERG SLIP-FLOW CORRECTION =====
+%%   KLINKENBERG SLIP-FLOW CORRECTION  
 
 b_klink = 0.11 * permeability^(-0.39);
 P_mean  = 101325;
 k_klink = permeability * (1 + b_klink / P_mean);
 
-fprintf('=== KLINKENBERG SLIP CORRECTION ===\n');
+fprintf('  KLINKENBERG SLIP CORRECTION  \n');
 fprintf('Intrinsic permeability   : %.3e m²\n', permeability);
 fprintf('Klinkenberg factor b     : %.4f Pa\n',  b_klink);
 fprintf('Slip-corrected perm.     : %.3e m²\n\n', k_klink);
 
-%% ===== SYSTEM PARAMETERS PRINTOUT =====
+%%    SYSTEM PARAMETERS PRINTOUT   
 
-fprintf('=== SYSTEM PARAMETERS ===\n');
+fprintf('  SYSTEM PARAMETERS  \n');
 fprintf('Pore diameter        : %.1f μm\n',    pore_diameter*1e6);
 fprintf('Plate thickness      : %.1f mm\n',    plate_thickness*1e3);
 fprintf('Porosity             : %.2f%%\n',     porosity*100);
@@ -158,12 +156,12 @@ fprintf('Temperature          : %.0f°C\n',     temperature_C);
 fprintf('Gallinstan height    : %.0f mm\n',    gallinstan_height*1e3);
 fprintf('Est. permeability    : %.2e m²\n\n',  permeability);
 
-%% ===== PRESSURE CALCULATIONS =====
+%%    PRESSURE CALCULATIONS   
 
 % Hydrostatic (independent of gamma)
 delta_P_hydrostatic = rho_gallinstan * g * gallinstan_height;
 
-% --- Nominal (γ_nom) ---
+%   Nominal (γ_nom)  
 delta_P_capillary_adv = (2*gamma_gallinstan*abs(cos(contact_angle_adv_rad))) / pore_radius;
 delta_P_capillary_rec = (2*gamma_gallinstan*abs(cos(contact_angle_rec_rad))) / pore_radius;
 delta_P_flow          = (mu_nitrogen * superficial_velocity * plate_thickness) / k_klink;
@@ -173,21 +171,21 @@ delta_P_bubble        = (2*gamma_gallinstan) / pore_radius;
 delta_P_total         = delta_P_capillary_adv + delta_P_hydrostatic + ...
                         delta_P_flow + delta_P_forchhei + delta_P_bubble;
 
-% --- Low γ (oxidation worst-case) ---
+%   Low γ (oxidation worst-case)  
 dP_cap_adv_low = (2*gamma_low*abs(cos(contact_angle_adv_rad))) / pore_radius;
 dP_bubble_low  = (2*gamma_low) / pore_radius;
 delta_P_total_low = dP_cap_adv_low + delta_P_hydrostatic + ...
                     delta_P_flow + delta_P_forchhei + dP_bubble_low;
 
-% --- High γ (fully inert upper bound) ---
+%   High γ (fully inert upper bound)  
 dP_cap_adv_high = (2*gamma_high*abs(cos(contact_angle_adv_rad))) / pore_radius;
 dP_bubble_high  = (2*gamma_high) / pore_radius;
 delta_P_total_high = dP_cap_adv_high + delta_P_hydrostatic + ...
                      delta_P_flow + delta_P_forchhei + dP_bubble_high;
 
-%% ===== RESULTS OUTPUT =====
+%%  = RESULTS OUTPUT  
 
-fprintf('=== PRESSURE COMPONENTS (nominal γ = %.4f N/m) ===\n', gamma_gallinstan);
+fprintf('  PRESSURE COMPONENTS (nominal γ = %.4f N/m)  \n', gamma_gallinstan);
 
 fprintf('1. Capillary Entry Pressure (advancing, θ=%.0f°):\n', contact_angle_adv_deg);
 fprintf('   ΔP_cap_adv = %8.1f Pa  (%.5f bar, %.4f psi)\n', ...
@@ -212,7 +210,7 @@ fprintf('5. Bubble Formation Pressure (Young-Laplace):\n');
 fprintf('   ΔP_bubble  = %8.1f Pa  (%.5f bar, %.4f psi)\n\n', ...
         delta_P_bubble, delta_P_bubble/1e5, delta_P_bubble/6894.76);
 
-fprintf('=== TOTAL REQUIRED PRESSURE — UNCERTAINTY RANGE ===\n');
+fprintf('  TOTAL REQUIRED PRESSURE — UNCERTAINTY RANGE  \n');
 fprintf('  γ_low  (%.3f N/m, oxidised)  : %8.1f Pa  (%.5f bar)  ← minimum credible\n', ...
         gamma_low,  delta_P_total_low,  delta_P_total_low/1e5);
 fprintf('  γ_nom  (%.3f N/m, oxide-free): %8.1f Pa  (%.5f bar)  ← DESIGN VALUE\n', ...
@@ -234,16 +232,16 @@ fprintf('  If O₂ contamination is present (γ drops to %.3f N/m),\n', gamma_lo
 fprintf('  required ΔP drops to %.1f Pa — capillary barrier weakens.\n', delta_P_total_low);
 fprintf('  RISK: if θ < 90° due to oxidation, capillary barrier disappears entirely.\n\n');
 
-%% ===== COMPONENT BREAKDOWN =====
+%%   COMPONENT BREAKDOWN  
 
-fprintf('=== COMPONENT BREAKDOWN (nominal) ===\n');
+fprintf('  COMPONENT BREAKDOWN (nominal)  \n');
 fprintf('Capillary (adv.) :  %5.1f%% of total\n', 100*delta_P_capillary_adv/delta_P_total);
 fprintf('Hydrostatic      :  %5.1f%% of total\n', 100*delta_P_hydrostatic/delta_P_total);
 fprintf('Flow (Darcy)     :  %5.1f%% of total\n', 100*delta_P_flow/delta_P_total);
 fprintf('Forchheimer      :  %5.1f%% of total\n', 100*delta_P_forchhei/delta_P_total);
 fprintf('Bubble formation :  %5.1f%% of total\n\n', 100*delta_P_bubble/delta_P_total);
 
-%% ===== BUBBLE CHARACTERISTICS =====
+%%   BUBBLE CHARACTERISTICS  
 
 D_fritz = 0.0208 * contact_angle_adv_deg * ...
           sqrt(gamma_gallinstan / (g * (rho_gallinstan - rho_nitrogen)));
@@ -253,7 +251,7 @@ bubble_volume_fritz = (4/3)*pi*R_fritz^3;
 bubble_freq_pore    = flow_rate_m3s / bubble_volume_pore;
 bubble_freq_fritz   = flow_rate_m3s / bubble_volume_fritz;
 
-fprintf('=== BUBBLE CHARACTERISTICS ===\n');
+fprintf('  BUBBLE CHARACTERISTICS  \n');
 fprintf('Pore-radius model:\n');
 fprintf('  Bubble radius    : %.1f μm\n', pore_radius*1e6);
 fprintf('  Bubble frequency : %.2f Hz  (%.0f bubbles/min)\n', bubble_freq_pore, bubble_freq_pore*60);
@@ -262,12 +260,12 @@ fprintf('  Detachment diameter : %.2f mm\n', D_fritz*1e3);
 fprintf('  Bubble frequency    : %.4f Hz  (%.2f bubbles/min)\n', bubble_freq_fritz, bubble_freq_fritz*60);
 fprintf('(Actual bubbles will coalesce and grow; Fritz gives detachment upper bound on size)\n\n');
 
-%% ===== THERMAL STRESS ESTIMATE =====
+%%   THERMAL STRESS ESTIMATE  
 
 delta_alpha   = abs(alpha_SiC - alpha_vessel);
 sigma_thermal = E_SiC * delta_alpha * delta_T;
 
-fprintf('=== THERMAL STRESS ESTIMATE ===\n');
+fprintf('  THERMAL STRESS ESTIMATE  \n');
 fprintf('α_SiC    : %.1f μm/m·K\n', alpha_SiC*1e6);
 fprintf('α_vessel : %.1f μm/m·K  (316L SS, corrected)\n', alpha_vessel*1e6);
 fprintf('ΔCTE     : %.1f μm/m·K\n', delta_alpha*1e6);
@@ -282,7 +280,7 @@ else
     fprintf('✓  Thermal stress within acceptable range for sintered SiC.\n\n');
 end
 
-%% ===== PARAMETRIC STUDY: EFFECT OF PORE SIZE =====
+%%   PARAMETRIC STUDY: EFFECT OF PORE SIZE  
 
 pore_diameters = logspace(-5, -4, 50);
 n = length(pore_diameters);
@@ -314,11 +312,11 @@ for i = 1:n
                       P_hydro_array(i) + P_flow_array(i) + P_forch_array(i) + (2*gamma_high)/r;
 end
 
-%% ===== PLOTS =====
+%%   PLOTS  
 
 figure('Position',[100 100 1150 850],'Name','Gallinstan Pressure Analysis (Corrected Properties)');
 
-% --- Panel 1: Absolute pressures with uncertainty band ---
+%   Panel 1: Absolute pressures with uncertainty band  
 subplot(2,2,1)
 patch([pore_diameters pore_diameters(end:-1:1)]*1e6, ...
       [P_total_low P_total_high(end:-1:1)]/1e5, ...
@@ -336,7 +334,7 @@ xlabel('Pore Diameter [μm]'); ylabel('Pressure [bar]');
 title('Required Pressure vs Pore Size');
 legend('Location','best','FontSize',7);
 
-% --- Panel 2: Component contributions ---
+%   Panel 2: Component contributions  
 subplot(2,2,2)
 semilogx(pore_diameters*1e6, 100*P_cap_array./P_total_array,    'r-',  'LineWidth',1.5,'DisplayName','Capillary'); hold on;
 semilogx(pore_diameters*1e6, 100*P_bubble_array./P_total_array, 'g-',  'LineWidth',1.5,'DisplayName','Bubble');
@@ -349,7 +347,7 @@ xlabel('Pore Diameter [μm]'); ylabel('Contribution [%]');
 title('Pressure Component Contributions');
 legend('Location','best','FontSize',7);
 
-% --- Panel 3: γ uncertainty effect on total pressure ---
+%   Panel 3: γ uncertainty effect on total pressure  
 subplot(2,2,3)
 gamma_sweep = linspace(0.35, 0.65, 100);
 dP_vs_gamma = zeros(size(gamma_sweep));
@@ -369,7 +367,7 @@ xlabel('Surface Tension γ [mN/m]'); ylabel('Total ΔP [Pa]');
 title('Sensitivity to γ (dominant uncertainty)');
 legend('ΔP total','Location','best','FontSize',8);
 
-% --- Panel 4: Flow rate sensitivity ---
+%   Panel 4: Flow rate sensitivity  
 subplot(2,2,4)
 flow_rates = linspace(0.1, 20, 100);
 P_vs_flow  = zeros(size(flow_rates));
@@ -390,7 +388,7 @@ legend('Total ΔP','Current op. point','Location','best');
 sgtitle(sprintf('Gallinstan/SiC Bubbler — Corrected Properties (γ_{nom}=%.0f mN/m, ρ=%.0f kg/m³, T=%.0f°C)', ...
         gamma_nom*1e3, rho_gallinstan, temperature_C), 'FontSize',11,'FontWeight','bold');
 
-fprintf('=== CALCULATION COMPLETE ===\n');
+fprintf('  CALCULATION COMPLETE  \n');
 fprintf('Key correction: γ reduced from 0.650 to %.3f N/m (literature value at 200°C).\n', gamma_nom);
 fprintf('Panel 3 shows how total ΔP varies across the full γ uncertainty range.\n');
 fprintf('Red circles mark the current operating point.\n');

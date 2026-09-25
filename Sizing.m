@@ -33,12 +33,12 @@
 %     just strain-limited like ductile steel).
 %   - SF applied via allowable stress — not via pressure amplification.
 
-% =========================================================================
+ 
 clear; clc; close all;
 
-%% ===================================================================
-%  >>>  USER INPUTS
-%% ===================================================================
+ 
+%% USER INPUTS
+ 
 
 P_operating   = 2500;          % Peak operating pressure [Pa]
 T_ambient     = 20;            % Assembly temperature [°C]  (reference only)
@@ -53,7 +53,7 @@ L_vessel      = 1.00;         % Vessel length [m]        (150 mm)
 endcap_type   = 'ellipsoidal'; % 'flat' | 'ellipsoidal' | 'hemispherical'
 SiC_edge_BC   = 'clamped';     % 'clamped' | 'simply_supported'
 
-% --- 316L Stainless Steel at 200°C  (ASME Section II Part D) ---
+%   316L Stainless Steel at 200°C  (ASME Section II Part D)  
 mat_v.name    = '316L Stainless Steel';
 mat_v.E       = 193e9;         % [Pa]
 mat_v.nu      = 0.28;
@@ -62,7 +62,7 @@ mat_v.Sy      = 170e6;         % [Pa]   yield at 200°C
 mat_v.Su      = 450e6;         % [Pa]   UTS at 200°C
 mat_v.rho     = 7950;          % [kg/m³]
 
-% --- SiC (sintered α-SiC — Munro 1997 / manufacturer datasheets) ---
+%   SiC (sintered α-SiC — Munro 1997 / manufacturer datasheets)  
 % ⚠  MOR is GRADE-SENSITIVE:
 %    Sintered α-SiC :  300–500 MPa  (use 370 MPa as mid-range)
 %    Reaction-bonded:  200–350 MPa  (lower; contains residual Si)
@@ -75,24 +75,24 @@ mat_s.alpha   = 4.0e-6;        % [1/K]  reference only — not used in stress ca
 mat_s.MOR     = 370e6;         % [Pa]   sintered mid-range; use 300e6 for RB-SiC
 mat_s.KIC     = 3.5e6;         % [Pa√m] confirmed in range 2.5–4.5
 
-% --- Bolt material (ASTM A193 B8M = 316SS bolting) ---
+%   Bolt material (ASTM A193 B8M = 316SS bolting)  
 mat_b.name    = 'ASTM A193 B8M (316SS)';
 mat_b.Sy      = 207e6;         % [Pa]
 bolt_dia      = 0.010;         % [m]  M10
 
-% --- Gasket (PTFE — compatible with Galinstan, rated to 260°C) ---
+%   Gasket (PTFE — compatible with Galinstan, rated to 260°C)  
 gasket_width  = 0.005;         % [m]
 m_gasket      = 2.0;           % gasket factor (ASME App.2)
 y_gasket      = 11.0e6;        % min seating stress [Pa]
 t_gasket      = 0.002;         % [m]
 
-% --- Manufacturing minimums ---
+%   Manufacturing minimums  
 t_wall_min    = 0.05;         % [m]  50 mm — weldability / LME margin
 t_endcap_min  = 0.04;         % [m]  40 mm
 
-%% ===================================================================
-%  DERIVED QUANTITIES
-%% ===================================================================
+ 
+%%  DERIVED QUANTITIES
+ 
 
 E_joint     = 1.0;                           % weld efficiency (full-pen)
 a_plate     = R_inner;                       % SiC plate radius [m]
@@ -101,13 +101,13 @@ S_allow_v   = mat_v.Sy / SF_vessel;
 S_allow_SiC = mat_s.MOR / SF_SiC;
 S_allow_bolt= mat_b.Sy / SF_bolt;
 
-%% ===================================================================
-%  LOAD HIERARCHY PRINTOUT
-%% ===================================================================
+ 
+%%  LOAD HIERARCHY PRINTOUT
+ 
 
-fprintf('=========================================================\n');
+ 
 fprintf('  LOAD HIERARCHY — GOVERNING STRESS DRIVERS\n');
-fprintf('=========================================================\n');
+ 
 t_demo = t_wall_min;
 sig_hoop_demo = P_operating * R_inner / t_demo;
 fprintf('Operating pressure : %.0f Pa  (%.5f bar)\n', P_operating, P_operating/1e5);
@@ -128,9 +128,9 @@ fprintf('⚠  MATERIAL COMPATIBILITY (316L SS + Galinstan):\n');
 fprintf('   Gallium alloys cause liquid metal embrittlement (LME) in SS at 200°C.\n');
 fprintf('   Consider: SiC/PTFE liner, Hastelloy C-276, or tungsten wetted surfaces.\n\n');
 
-%% ===================================================================
-%  A) CYLINDER WALL SIZING
-%% ===================================================================
+ 
+%%  A) CYLINDER WALL SIZING
+ 
 
 t_ASME = (P_operating * R_inner) / (S_allow_v * E_joint - 0.6*P_operating);
 
@@ -145,9 +145,9 @@ sig_vm_P  = sqrt(sig_hoop^2 + sig_axial^2 - sig_hoop*sig_axial);
 
 SF_wall_P  = mat_v.Sy / sig_vm_P;
 
-fprintf('=========================================================\n');
+ 
 fprintf('  A) CYLINDER WALL SIZING\n');
-fprintf('=========================================================\n');
+ 
 fprintf('ASME Div.1 min thickness      : %.4f mm  (pressure only)\n', t_ASME*1e3);
 fprintf('Practical manufacturing min   : %.1f mm\n', t_wall_min*1e3);
 fprintf('Governing                     : %s\n', ...
@@ -158,12 +158,12 @@ fprintf('  Hoop (pressure)             : %.5f MPa\n', sig_hoop/1e6);
 fprintf('  Von Mises (pressure)        : %.5f MPa  → SF = %.0f×  %s\n\n', ...
         sig_vm_P/1e6, SF_wall_P, pass_fail(SF_wall_P >= SF_vessel));
 
-%% ===================================================================
-%  B) SiC PLATE SIZING  —  PRIMARY GOVERNING COMPONENT
-%%    Clamped (or simply supported) circular plate, pressure only.
-%%    (OD clearance) and any axial thermal effect is governed by bolt
-%%    preload / joint stiffness, not modeled here.
-%% ===================================================================
+ 
+%%  B) SiC PLATE SIZING  —  PRIMARY GOVERNING COMPONENT
+%    Clamped (or simply supported) circular plate, pressure only.
+%    (OD clearance) and any axial thermal effect is governed by bolt
+%    preload / joint stiffness, not modeled here.
+ 
 
 if strcmp(SiC_edge_BC,'clamped')
     C_bend = (3*P_operating*a_plate^2) / 4;
@@ -187,10 +187,10 @@ end
 Y_geo  = 1.12;
 a_crit = (1/pi) * (mat_s.KIC / (sig_bend_nom*Y_geo))^2;
 
-fprintf('=========================================================\n');
+ 
 fprintf('  B) SiC PLATE SIZING  ★ PRIMARY GOVERNING COMPONENT\n');
 fprintf('     (%s edge, pressure-driven bending only)\n', upper(SiC_edge_BC));
-fprintf('=========================================================\n');
+ 
 fprintf('MOR (sintered α-SiC)      : %.0f MPa  [use %.0f MPa for RB-SiC —\n', ...
         mat_s.MOR/1e6, 300);
 fprintf('                             confirm against your supplier datasheet]\n');
@@ -205,9 +205,9 @@ fprintf('  w/t                     : %.6f  (%s)\n', w_max/t_SiC_nom, ...
         iif(w_max/t_SiC_nom<0.2,'linear plate theory valid ✓','use nonlinear FEA'));
 fprintf('  Critical flaw size      : %.3f mm  ← specify surface finish to this tolerance\n\n', a_crit*1e3);
 
-%% ===================================================================
-%  C) END CAP SIZING
-%% ===================================================================
+ 
+%%  C) END CAP SIZING
+ 
 
 t_cap_ASME = endcap_thickness_fn(endcap_type, P_operating, R_inner, S_allow_v, E_joint);
 t_cap      = max(t_cap_ASME, t_endcap_min);
@@ -216,9 +216,9 @@ t_cap_nom  = ceil(t_cap * 2000) / 2000;
 sig_cap_P = P_operating * R_inner / t_cap_nom;
 SF_cap    = mat_v.Sy / sig_cap_P;
 
-fprintf('=========================================================\n');
+ 
 fprintf('  C) END CAP SIZING  (%s)\n', endcap_type);
-fprintf('=========================================================\n');
+ 
 fprintf('ASME formula min          : %.6f mm\n', t_cap_ASME*1e3);
 fprintf('Practical min             : %.1f mm\n', t_endcap_min*1e3);
 fprintf('Governing                 : %s\n', ...
@@ -233,9 +233,9 @@ fprintf('pressure, radius, or SF will not move this number unless\n');
 fprintf('t_endcap_min itself is changed, or pressure rises by orders of\n');
 fprintf('magnitude.\n\n');
 
-%% ===================================================================
-%  D) FLANGE & BOLT SIZING
-%% ===================================================================
+ 
+%%  D) FLANGE & BOLT SIZING
+ 
 
 A_gasket = pi*((R_inner+gasket_width)^2 - R_inner^2);
 W_seat   = y_gasket * A_gasket;
@@ -254,9 +254,9 @@ BCD      = 2*(R_outer + bolt_dia/2 + 0.015);
 t_flange = max(1.5*bolt_dia, t_cap_nom);
 t_fl_nom = ceil(t_flange*2000)/2000;
 
-fprintf('=========================================================\n');
+ 
 fprintf('  D) FLANGE & BOLT SIZING\n');
-fprintf('=========================================================\n');
+ 
 fprintf('Purpose: the flange/bolt joint clamps the gasket to seal the\n');
 fprintf('vessel and captures the SiC plate on its shoulders. At this\n');
 fprintf('operating pressure, gasket seating load typically exceeds the\n');
@@ -273,14 +273,14 @@ fprintf('Flange thickness  ★       : %.1f mm  ← USE THIS\n', t_fl_nom*1e3);
 fprintf('Bolt stress               : %.4f MPa\n', sig_bolt/1e6);
 fprintf('SF (bolts)                : %.2f×  %s\n\n', SF_bolt_act, pass_fail(SF_bolt_act>=SF_bolt));
 
-%% ===================================================================
-%  E) MECHANICAL BC SUMMARY
-%% ===================================================================
+ 
+%%  E) MECHANICAL BC SUMMARY
+ 
 
-fprintf('=========================================================\n');
+ 
 fprintf('  E) FEA — BOUNDARY CONDITIONS (pressure-only structural)\n');
-fprintf('=========================================================\n\n');
-fprintf('--- GEOMETRY ★ ---\n');
+ 
+fprintf('  GEOMETRY ★  \n');
 fprintf('  Inner radius          : %.1f mm\n', R_inner*1e3);
 fprintf('  Wall thickness        : %.1f mm\n', t_wall_nom*1e3);
 fprintf('  Outer radius          : %.1f mm\n', R_outer*1e3);
@@ -290,55 +290,55 @@ fprintf('  SiC plate thickness   : %.0f mm\n', t_SiC_nom*1e3);
 fprintf('  Flange thickness      : %.1f mm\n', t_fl_nom*1e3);
 fprintf('  Bolt circle dia       : %.1f mm\n', BCD*1e3);
 fprintf('  No. bolts             : %d × M%.0f\n\n', n_nom, bolt_dia*1e3);
-fprintf('--- ANALYSIS TYPE ---\n');
+fprintf('  ANALYSIS TYPE  \n');
 fprintf('  Static Structural, pressure-only \n');
 fprintf('  Large deflection      : OFF  (w/t = %.6f << 0.2)\n\n', w_max/t_SiC_nom);
-fprintf('--- PRESSURE BCs ---\n');
+fprintf('  PRESSURE BCs  \n');
 fprintf('  All inner surfaces    : %.0f Pa  (inward normal)\n', P_operating);
 fprintf('  SiC top face          : %.0f Pa  (Galinstan side, downward)\n', P_operating);
 fprintf('  SiC bottom face       : %.0f Pa  (N₂ side, upward)\n', P_operating);
 fprintf('  Net ΔP across SiC     : %.0f Pa\n\n', P_operating);
-fprintf('--- CONTACTS ---\n');
+fprintf('  CONTACTS  \n');
 fprintf('  SiC-to-shoulder (both sides) : Frictional, μ = 0.3, allow separation\n');
 fprintf('  SiC OD-to-bore               : radial clearance gap — no contact\n');
 fprintf('                                  expected at assembly (floating plate)\n');
 fprintf('  Gasket                       : INTER195 gasket element\n');
 fprintf('  Bolt preload                 : PRETS179, %.0f MPa (80%% bolt yield)\n', 0.8*mat_b.Sy/1e6);
 fprintf('  Welds                        : Bonded contact\n\n');
-fprintf('--- ELEMENTS ---\n');
+fprintf('  ELEMENTS  \n');
 fprintf('  Vessel / end cap      : SOLID186  (20-node quadratic hex)\n');
 fprintf('  SiC plate             : SOLID186  (t/R=%.2f, solid preferred)\n', t_SiC_nom/a_plate);
 fprintf('  Gasket                : INTER195\n');
 fprintf('  Contacts              : CONTA174 / TARGE170\n\n');
-fprintf('--- MESH TARGETS ---\n');
+fprintf('  MESH TARGETS  \n');
 fprintf('  Vessel wall           : %.2f mm  (≥3 elements through thickness)\n', t_wall_nom/3*1e3);
 fprintf('  SiC plate             : %.2f mm  (≥5 elements through thickness)\n', t_SiC_nom/5*1e3);
 fprintf('  Convergence: re-run at 0.75× mesh; accept if Δσ < 5%%\n\n');
-fprintf('--- KEY RESULT PROBES ---\n');
+fprintf('  KEY RESULT PROBES  \n');
 fprintf('  1. Max principal stress    — SiC plate (brittle fracture criterion)\n');
 fprintf('  2. Equivalent VM stress    — vessel inner wall\n');
 fprintf('  3. Contact pressure        — SiC/shoulder (retention/seal integrity)\n');
 fprintf('  4. Directional deformation — SiC plate centre\n');
 fprintf('  5. SF contour (SiC vs MOR, vessel vs Sy)\n\n');
-fprintf('--- OUT OF SCOPE FOR THIS HAND-CALC (recommend separately) ---\n');
+fprintf('  OUT OF SCOPE FOR THIS HAND-CALC (recommend separately)  \n');
 fprintf('  - Bolt preload / joint-stiffness diagram across the operating\n');
 fprintf('    ΔT range, to confirm clamp force never drops to zero or\n');
 fprintf('    overstresses the SiC in compression on cooldown.\n');
 fprintf('  - Confirm required as-built one-sided gap and how much it is\n');
 fprintf('    expected to close/open across the full temperature range.\n\n');
-fprintf('--- HAND-CALC VALIDATION TARGETS ---\n');
+fprintf('  HAND-CALC VALIDATION TARGETS  \n');
 fprintf('  Vessel hoop (pressure)       : %.5f MPa\n', sig_hoop/1e6);
 fprintf('  SiC bending stress           : %.4f MPa\n', sig_bend_nom/1e6);
 fprintf('  SiC max deflection           : %.6f mm\n', w_max*1e3);
 fprintf('  FEA agree within 5–10%% expected; larger → check mesh or BCs\n\n');
 
-%% ===================================================================
-%  FINAL SUMMARY TABLE
-%% ===================================================================
+ 
+%%  FINAL SUMMARY TABLE
+ 
 
-fprintf('=========================================================\n');
+ 
 fprintf('  FINAL SIZING SUMMARY  (★ = dimensions to enter in CAD/FEA)\n');
-fprintf('=========================================================\n');
+ 
 fprintf('%-44s %8s  %6s\n','Parameter','Value','Units');
 fprintf('%s\n', repmat('-',1,62));
 fprintf('%-44s %8.0f  %6s\n','Operating pressure',            P_operating,      'Pa');
@@ -360,11 +360,11 @@ fprintf('%-44s %8.2f  %6s\n','SF: vessel (pressure)',          SF_wall_P,       
 fprintf('%-44s %8.2f  %6s\n','SF: SiC (bending)',              SF_SiC_bend,     '-');
 fprintf('%-44s %8.2f  %6s\n','SF: bolts',                      SF_bolt_act,     '-');
 fprintf('%s\n\n', repmat('-',1,62));
-fprintf('=== SIZING COMPLETE ===\n');
+fprintf('  SIZING COMPLETE  \n');
 
-%% ===================================================================
-%  PARAMETRIC PLOTS
-%% ===================================================================
+ 
+%%  PARAMETRIC PLOTS
+ 
 
 figure('Position',[50 50 1300 850],'Name','Vessel Sizing — Parametric (Pressure-Only)');
 colors = lines(4); SF_sweep = [2 3 4 5];
@@ -388,7 +388,7 @@ xlabel('Plate Radius [mm]'); ylabel('SiC Thickness [mm]');
 title(sprintf('SiC Sizing — Pressure Bending Only (%s edge)',upper(SiC_edge_BC)));
 legend('Location','best','FontSize',7);
 
-% Plot 2: Stress budget bar (MOR -> allowable -> actual)
+%% Plot 2: Stress budget bar (MOR -> allowable -> actual)
 subplot(2,2,2)
 bv = [mat_s.MOR, S_allow_SiC, sig_bend_nom]/1e6;
 bc = [0.4 0.6 0.9; 0.2 0.7 0.4; 0.8 0.2 0.2];
@@ -401,7 +401,7 @@ for i=1:length(bv)
     text(i,bv(i)+1,sprintf('%.1f',bv(i)),'HorizontalAlignment','center','FontSize',8);
 end
 
-% Plot 3: SiC SF vs thickness (bending only)
+%% Plot 3: SiC SF vs thickness (bending only)
 subplot(2,2,3)
 if strcmp(SiC_edge_BC,'clamped')
     C_b = (3*P_operating*a_plate^2)/4;
@@ -418,7 +418,7 @@ xlabel('SiC Plate Thickness [mm]'); ylabel('Safety Factor vs MOR');
 title('SiC SF vs Thickness');
 legend('Location','best','FontSize',8);
 
-% Plot 4: Vessel wall SF vs operating pressure sweep
+%% Plot 4: Vessel wall SF vs operating pressure sweep
 subplot(2,2,4)
 P_range = linspace(500, 50000, 150);
 sig_hoop_r  = P_range * R_inner / t_wall_nom;
@@ -437,9 +437,9 @@ sgtitle(sprintf('Vessel Sizing — Pressure-Only | R_{in}=%.0fmm, P=%.0f Pa, T=%
         R_inner*1e3, P_operating, T_operating), ...
         'FontSize',10,'FontWeight','bold');
 
-%% ===================================================================
-%  LOCAL HELPER FUNCTIONS
-%% ===================================================================
+ 
+%%  LOCAL HELPER FUNCTIONS
+ 
 
 function s = pass_fail(cond)
     if cond; s = '✓ PASS'; else; s = '✗ FAIL'; end
