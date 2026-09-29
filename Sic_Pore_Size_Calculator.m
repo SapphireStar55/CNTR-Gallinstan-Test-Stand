@@ -1,10 +1,10 @@
-%% SiC Frit Pore Size Calculator — Capillary Breakthrough vs He Flow Rate
+%% SiC Frit Pore Size Calculator Capillary Breakthrough vs He Flow Rate
 % Solves for the pore diameter window that:
 %   (1) keeps liquid Galinstan from breaking through the frit (Young-Laplace
 %       bubble-point criterion, with an applied safety factor), AND
 %   (2) passes a target, easily-measurable He flow rate at the top.
 %
-% ⚠ CONTACT ANGLE AND SURFACE TENSION ARE NOT MEASURED — this script
+% ⚠ CONTACT ANGLE AND SURFACE TENSION ARE NOT MEASURED this script
 %   sweeps across the plausible literature range, every output is provisional until 
 %  a real sessile-drop measurement of Galinstan on the Sic frit is
 %  achieved. 
@@ -19,10 +19,10 @@
 %       Q_total = N_pores * Q_pore
 %   Knudsen number flags when continuum (Hagen-Poiseuille) breaks down:
 %       Kn = mean_free_path / d_pore
-%       Kn < 0.01        : continuum flow — Hagen-Poiseuille valid
-%       0.01 < Kn < 0.1   : slip flow — HP UNDERESTIMATES actual flow
-%       0.1 < Kn < 10     : transition flow — HP substantially wrong
-%       Kn > 10           : free molecular flow — HP invalid, use different model
+%       Kn < 0.01        : continuum flow Hagen-Poiseuille valid
+%       0.01 < Kn < 0.1   : slip flow HP UNDERESTIMATES actual flow
+%       0.1 < Kn < 10     : transition flow HP substantially wrong
+%       Kn > 10           : free molecular flow HP invalid, use different model
 
 clear; clc;
 
@@ -30,14 +30,14 @@ clear; clc;
 %% USER INPUTS 
  
 
-%   Geometry (from vessel sizing script — UPDATE t_SiC_nom to match)  
+%   Geometry (from vessel sizing script UPDATE t_SiC_nom to match)  
 R_inner     = 0.025;      % plate radius [m]  (25 mm, same as vessel script)
 t_SiC_nom   = 0.005;      % ⚠ UPDATE to the actual value from sic sizing run [m]
 A_plate     = pi*R_inner^2;
 
 %   Operating condition  
 P_operating = 2500;       % [Pa]  same as vessel script
-SF_breakthrough = 3.0;    % safety factor on breakthrough pressure — pore
+SF_breakthrough = 3.0;    % safety factor on breakthrough pressure pore
                            % must survive SF x P_operating without wetting through
 
 %   Frit porosity + tortuosity (typical sintered/porous SiC frit range)  
@@ -50,10 +50,10 @@ mu_He   = 1.99e-5;        % [Pa.s] dynamic viscosity
 T_gas   = 293.15;         % [K]
 lambda_He_atm = 186e-9;   % [m] mean free path of He at 1 atm, 20°C
 
-%   Galinstan surface properties — LITERATURE RANGE, NOT MEASURED  
+%   Galinstan surface properties LITERATURE RANGE, NOT MEASURED  
 % gamma: surface tension, sensitive to oxide-skin state
 gamma_range = [0.50, 0.60, 0.72];        % [N/m]  low / mid / high (oxide-affected to clean)
-% theta: contact angle on SiC — must be NON-WETTING (>90 deg) for the
+% theta: contact angle on SiC must be NON-WETTING (>90 deg) for the
 % barrier concept to work at all. Using flat oxidized-Si literature as the
 % chemistry anchor (see conversation) with a spread for roughness effects.
 theta_deg_range = [100, 125, 150];       % [deg] conservative / mid / optimistic
@@ -68,7 +68,7 @@ Q_target_range  = [2, 50];          % [sccm] "easily measurable" band to shade
 lambda_He = lambda_He_atm * (101325 / P_operating);   % [m]
 
  
-fprintf('  SiC FRIT PORE SIZING — CAPILLARY BREAKTHROUGH vs He FLOW\n');
+fprintf('  SiC FRIT PORE SIZING CAPILLARY BREAKTHROUGH vs He FLOW\n');
  
 fprintf('Plate radius              : %.1f mm\n', R_inner*1e3);
 fprintf('Plate thickness (nominal) : %.2f mm  ⚠ confirm vs sizing script\n', t_SiC_nom*1e3);
@@ -123,7 +123,7 @@ for ig = 1:n_gamma
     end
     fprintf('\n');
 end
-fprintf('\n⚠  Table entries are MAX pore diameter [um] — smaller pores are safer\n');
+fprintf('\n⚠  Table entries are MAX pore diameter [um] smaller pores are safer\n');
 fprintf('    against Galinstan breakthrough, but reduce He flow (see below).\n\n');
 
  
@@ -150,7 +150,7 @@ fprintf('Knudsen number there      : %.3f  %s\n\n', lambda_He/d_for_target_flow,
         flow_regime(lambda_He/d_for_target_flow));
 
  
-%%  FEASIBILITY CHECK — does a window exist?
+%%  FEASIBILITY CHECK does a window exist?
  
 d_max_conservative = min(d_max_allow(:));   % worst-case (smallest allowable) breakthrough limit
 d_max_optimistic    = max(d_max_allow(:));  % best-case (largest allowable) breakthrough limit
@@ -169,7 +169,7 @@ if d_for_target_flow < d_max_conservative
              '  conservative breakthrough limit (%.3f um).\n\n'], ...
              d_for_target_flow*1e6, d_max_conservative*1e6);
 elseif d_for_target_flow < d_max_optimistic
-    fprintf(['⚠ CONDITIONALLY FEASIBLE — only works if actual gamma/theta\n' ...
+    fprintf(['⚠ CONDITIONALLY FEASIBLE only works if actual gamma/theta\n' ...
              '  land on the favorable side of the sweep. Target-flow pore\n' ...
              '  size (%.3f um) exceeds the worst-case breakthrough limit\n' ...
              '  (%.3f um) but is within the best-case limit (%.3f um).\n' ...
@@ -187,7 +187,7 @@ end
 
 fprintf('⚠  Non-wetting assumption itself is unverified: if the actual\n');
 fprintf('   contact angle is < 90 deg (Galinstan wets SiC once its oxide\n');
-fprintf('   skin is disrupted), NO pore size makes this barrier work —\n');
+fprintf('   skin is disrupted), NO pore size makes this barrier work\n');
 fprintf('   the mechanism fails structurally, not just quantitatively.\n\n');
 
  
@@ -235,7 +235,7 @@ title(sprintf('Flow Rate vs Pore Diameter (t=%.1fmm, \\tau=%.1f)', t_SiC_nom*1e3
 legend('Location','best','FontSize',8);
 grid on;
 
-% Plot 3: Knudsen number vs pore diameter — validity of Hagen-Poiseuille
+% Plot 3: Knudsen number vs pore diameter validity of Hagen-Poiseuille
 subplot(2,2,3);
 loglog(d_pore_range*1e6, Kn, 'm-', 'LineWidth', 2); hold on;
 yline(0.01,'k--','continuum limit (Kn=0.01)','LabelHorizontalAlignment','left','FontSize',7);
@@ -244,7 +244,7 @@ xlabel('Pore Diameter [\mum]'); ylabel('Knudsen Number [-]');
 title(sprintf('Flow Regime Check (\\lambda_{He} = %.1f \\mum)', lambda_He*1e6));
 grid on;
 
-% Plot 4: Feasibility map — porosity vs pore diameter, shaded feasible zone
+% Plot 4: Feasibility map porosity vs pore diameter, shaded feasible zone
 subplot(2,2,4); hold on;
 [D,PO] = meshgrid(d_pore_range, porosity_range);
 Qmap = zeros(size(D));
@@ -272,12 +272,12 @@ sgtitle(sprintf('SiC Frit Pore Sizing | R=%.0fmm, t=%.1fmm, P_{op}=%.0fPa, SF_{b
  
 function s = flow_regime(Kn)
     if Kn < 0.01
-        s = '(continuum — Hagen-Poiseuille valid)';
+        s = '(continuum Hagen-Poiseuille valid)';
     elseif Kn < 0.1
-        s = '(slip flow — HP underestimates true flow)';
+        s = '(slip flow HP underestimates true flow)';
     elseif Kn < 10
-        s = '(transition flow — HP substantially wrong, need correction)';
+        s = '(transition flow HP substantially wrong, need correction)';
     else
-        s = '(free molecular flow — HP invalid)';
+        s = '(free molecular flow HP invalid)';
     end
 end
