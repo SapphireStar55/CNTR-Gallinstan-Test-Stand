@@ -45,7 +45,7 @@ T_K = temperature_C + 273.15;   % [K]
 % Surface tension: γ(T) = 587 - 0.0109*(T_K - 283.15) mN/m
 %   Plevachuk et al. (2014) J. Chem. Eng. Data 59, 757 — EGaInSn
 %   Brand Galinstan(R) ~534 mN/m at RT (Handschuh-Wang 2022)
-% Three scenarios to bracket oxidation uncertainty:
+% Three scenarios due to oxidation uncertainty:
 
 gamma_nom  = (587 - 0.0109*(T_K - 283.15)) * 1e-3;  % [N/m] oxide-free EGaInSn
 gamma_low  = 0.400;                                   % [N/m] partial oxidation worst-case
