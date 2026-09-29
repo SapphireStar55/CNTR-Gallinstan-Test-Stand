@@ -1,15 +1,14 @@
-%% Gallinstan Pressure Vessel — Forward Sizing Calculator
+%% Gallinstan Pressure Vessel Sizing Calculator
 % Inputs:  operating conditions + material + target safety factors
 % Outputs: required dimensions driven by correct governing loads
 %
 %   The SiC plate rests on shoulders on both sides and is clamped via bolt preload; on
 %   heating, the steel structure between the shoulders grows faster than
-%   the SiC plate (alpha_steel = 17.2e-6/K vs alpha_SiC = 4.0e-6/K), so
-%   free thermal expansion alone does not compress the plate — closing
-%   the assembly gap and maintaining clamp force is a bolt-preload /
+%   the SiC plate.
+%   Updated as closing the assembly gap and maintaining clamp force is a bolt-preload /
 %   joint-stiffness problem, not a rigid-bond CTE-mismatch problem. That
 %   preload/joint-diagram analysis is NOT modeled here and should be
-%   handled separately (or in FEA) if clamp-force retention across the
+%   handled in FEA if clamp-force retention across the
 %   operating temperature range needs to be verified.
 %
 %   The SiC plate is now sized purely as a CLAMPED CIRCULAR PLATE under
@@ -17,21 +16,21 @@
 %   pressure-only formulas.
 %
 % PROPERTY VALUES CORRECTED vs literature (see gallinstan_input_validation.m):
-%   alpha_vessel : 17.0e-6 → 17.2e-6 1/K   (ASME IID, 316L at 200°C) — kept
+%   alpha_vessel : 17.0e-6 → 17.2e-6 1/K   (ASME IID, 316L at 200°C) kept
 %                  for reference only; NOT used in stress calcs anymore.
 %   Sy_vessel    : 170e6   confirmed         (ASME IID mid-range)
 %   E_SiC        : 410e9   confirmed         (sintered α-SiC)
-%   MOR_SiC      : 370e6   confirmed but GRADE-SENSITIVE — see note below
-%   alpha_SiC    : 4.0e-6  confirmed         (sintered α-SiC) — reference only
+%   MOR_SiC      : 370e6   confirmed but GRADE-SENSITIVE see note below
+%   alpha_SiC    : 4.0e-6  confirmed         (sintered α-SiC) reference only
 %
 % KEY DESIGN PHILOSOPHY:
 %   - At P_op ≈ 2500 Pa, pressure stress is negligible in the WALL/CAPS
-%     relative to material strength — practical manufacturing minimums
+%     relative to material strength practical manufacturing minimums
 %     govern wall and end cap thickness, not the ASME formulas.
 %   - The SiC plate is the one component where pressure-driven bending
 %     is still the real governing load (ceramics are stress-limited, not
 %     just strain-limited like ductile steel).
-%   - SF applied via allowable stress — not via pressure amplification.
+%   - SF applied via allowable stress not via pressure amplification.
 
  
 clear; clc; close all;
@@ -44,9 +43,9 @@ P_operating   = 2500;          % Peak operating pressure [Pa]
 T_ambient     = 20;            % Assembly temperature [°C]  (reference only)
 T_operating   = 200;           % Operating temperature [°C] (reference only)
 
-SF_vessel     = 3.0;           % Target SF vs yield — vessel (pressure)
-SF_SiC        = 3.0;           % Target SF vs MOR  — SiC plate (bending)
-SF_bolt       = 2.0;           % Target SF vs yield — bolts
+SF_vessel     = 3.0;           % Target SF vs yield vessel (pressure)
+SF_SiC        = 3.0;           % Target SF vs MOR SiC plate (bending)
+SF_bolt       = 2.0;           % Target SF vs yield bolts
 
 R_inner       = 0.25;         % Inner vessel radius [m]  (25 mm)
 L_vessel      = 1.00;         % Vessel length [m]        (150 mm)
@@ -57,12 +56,12 @@ SiC_edge_BC   = 'clamped';     % 'clamped' | 'simply_supported'
 mat_v.name    = '316L Stainless Steel';
 mat_v.E       = 193e9;         % [Pa]
 mat_v.nu      = 0.28;
-mat_v.alpha   = 17.2e-6;       % [1/K]  reference only — not used in stress calc
+mat_v.alpha   = 17.2e-6;       % [1/K]  reference only not used in stress calc
 mat_v.Sy      = 170e6;         % [Pa]   yield at 200°C
 mat_v.Su      = 450e6;         % [Pa]   UTS at 200°C
 mat_v.rho     = 7950;          % [kg/m³]
 
-%   SiC (sintered α-SiC — Munro 1997 / manufacturer datasheets)  
+%   SiC (sintered α-Sic Munro 1997 / manufacturer datasheets)  
 % ⚠  MOR is GRADE-SENSITIVE:
 %    Sintered α-SiC :  300–500 MPa  (use 370 MPa as mid-range)
 %    Reaction-bonded:  200–350 MPa  (lower; contains residual Si)
@@ -71,7 +70,7 @@ mat_v.rho     = 7950;          % [kg/m³]
 mat_s.name    = 'Sintered alpha-SiC';
 mat_s.E       = 370e9;         % [Pa]   confirmed in range 370–450 GPa
 mat_s.nu      = 0.14;          % [-]    confirmed in range 0.14–0.21
-mat_s.alpha   = 4.0e-6;        % [1/K]  reference only — not used in stress calc
+mat_s.alpha   = 4.0e-6;        % [1/K]  reference only not used in stress calc
 mat_s.MOR     = 370e6;         % [Pa]   sintered mid-range; use 300e6 for RB-SiC
 mat_s.KIC     = 3.5e6;         % [Pa√m] confirmed in range 2.5–4.5
 
@@ -80,14 +79,14 @@ mat_b.name    = 'ASTM A193 B8M (316SS)';
 mat_b.Sy      = 207e6;         % [Pa]
 bolt_dia      = 0.010;         % [m]  M10
 
-%   Gasket (PTFE — compatible with Galinstan, rated to 260°C)  
+%   Gasket (PTFE compatible with Galinstan, rated to 260°C)  
 gasket_width  = 0.005;         % [m]
 m_gasket      = 2.0;           % gasket factor (ASME App.2)
 y_gasket      = 11.0e6;        % min seating stress [Pa]
 t_gasket      = 0.002;         % [m]
 
 %   Manufacturing minimums  
-t_wall_min    = 0.05;         % [m]  50 mm — weldability / LME margin
+t_wall_min    = 0.05;         % [m]  50 mm weldability / LME margin
 t_endcap_min  = 0.04;         % [m]  40 mm
 
  
@@ -106,20 +105,20 @@ S_allow_bolt= mat_b.Sy / SF_bolt;
  
 
  
-fprintf('  LOAD HIERARCHY — GOVERNING STRESS DRIVERS\n');
+fprintf('  LOAD HIERARCHY GOVERNING STRESS DRIVERS\n');
  
 t_demo = t_wall_min;
 sig_hoop_demo = P_operating * R_inner / t_demo;
 fprintf('Operating pressure : %.0f Pa  (%.5f bar)\n', P_operating, P_operating/1e5);
 fprintf('Hoop stress in %.0f mm wall : %.4f MPa  (SF_pressure = %.0f×)\n', ...
         t_demo*1e3, sig_hoop_demo/1e6, mat_v.Sy/sig_hoop_demo);
-fprintf('→ Pressure is far below yield/MOR for the wall and end caps —\n');
+fprintf('→ Pressure is far below yield/MOR for the wall and end caps \n');
 fprintf('  those components are sized by PRACTICAL MANUFACTURING MINIMUMS,\n');
 fprintf('  not by the ASME pressure formulas (see sections A and C).\n\n');
 fprintf('→ The SiC plate is the one component where pressure-driven\n');
 fprintf('  bending is still the real governing load, since ceramics are\n');
 fprintf('  stress-limited.\n');
-fprintf('  from this version — the plate floats radially and is clamped\n');
+fprintf('  from this version the plate floats radially and is clamped\n');
 fprintf('  axially by bolt preload on both shoulders; see revision note\n');
 fprintf('  at top of script for why that is a joint-preload problem, not\n');
 fprintf('  a rigid-bond thermal stress problem, and is not modeled here.\n\n');
@@ -159,7 +158,7 @@ fprintf('  Von Mises (pressure)        : %.5f MPa  → SF = %.0f×  %s\n\n', ...
         sig_vm_P/1e6, SF_wall_P, pass_fail(SF_wall_P >= SF_vessel));
 
  
-%%  B) SiC PLATE SIZING  —  PRIMARY GOVERNING COMPONENT
+%%  B) SiC PLATE SIZING PRIMARY GOVERNING COMPONENT
 %    Clamped (or simply supported) circular plate, pressure only.
 %    (OD clearance) and any axial thermal effect is governed by bolt
 %    preload / joint stiffness, not modeled here.
@@ -191,7 +190,7 @@ a_crit = (1/pi) * (mat_s.KIC / (sig_bend_nom*Y_geo))^2;
 fprintf('  B) SiC PLATE SIZING  ★ PRIMARY GOVERNING COMPONENT\n');
 fprintf('     (%s edge, pressure-driven bending only)\n', upper(SiC_edge_BC));
  
-fprintf('MOR (sintered α-SiC)      : %.0f MPa  [use %.0f MPa for RB-SiC —\n', ...
+fprintf('MOR (sintered α-SiC)      : %.0f MPa  [use %.0f MPa for RB-SiC\n', ...
         mat_s.MOR/1e6, 300);
 fprintf('                             confirm against your supplier datasheet]\n');
 fprintf('Allowable (MOR/SF)        : %.2f MPa\n\n', S_allow_SiC/1e6);
@@ -278,7 +277,7 @@ fprintf('SF (bolts)                : %.2f×  %s\n\n', SF_bolt_act, pass_fail(SF_
  
 
  
-fprintf('  E) FEA — BOUNDARY CONDITIONS (pressure-only structural)\n');
+fprintf('  E) FEA BOUNDARY CONDITIONS (pressure-only structural)\n');
  
 fprintf('  GEOMETRY ★  \n');
 fprintf('  Inner radius          : %.1f mm\n', R_inner*1e3);
@@ -300,7 +299,7 @@ fprintf('  SiC bottom face       : %.0f Pa  (N₂ side, upward)\n', P_operating)
 fprintf('  Net ΔP across SiC     : %.0f Pa\n\n', P_operating);
 fprintf('  CONTACTS  \n');
 fprintf('  SiC-to-shoulder (both sides) : Frictional, μ = 0.3, allow separation\n');
-fprintf('  SiC OD-to-bore               : radial clearance gap — no contact\n');
+fprintf('  SiC OD-to-bore               : radial clearance gap no contact\n');
 fprintf('                                  expected at assembly (floating plate)\n');
 fprintf('  Gasket                       : INTER195 gasket element\n');
 fprintf('  Bolt preload                 : PRETS179, %.0f MPa (80%% bolt yield)\n', 0.8*mat_b.Sy/1e6);
@@ -315,10 +314,10 @@ fprintf('  Vessel wall           : %.2f mm  (≥3 elements through thickness)\n'
 fprintf('  SiC plate             : %.2f mm  (≥5 elements through thickness)\n', t_SiC_nom/5*1e3);
 fprintf('  Convergence: re-run at 0.75× mesh; accept if Δσ < 5%%\n\n');
 fprintf('  KEY RESULT PROBES  \n');
-fprintf('  1. Max principal stress    — SiC plate (brittle fracture criterion)\n');
-fprintf('  2. Equivalent VM stress    — vessel inner wall\n');
-fprintf('  3. Contact pressure        — SiC/shoulder (retention/seal integrity)\n');
-fprintf('  4. Directional deformation — SiC plate centre\n');
+fprintf('  1. Max principal stress    SiC plate (brittle fracture criterion)\n');
+fprintf('  2. Equivalent VM stress    vessel inner wall\n');
+fprintf('  3. Contact pressure        SiC/shoulder (retention/seal integrity)\n');
+fprintf('  4. Directional deformation SiC plate centre\n');
 fprintf('  5. SF contour (SiC vs MOR, vessel vs Sy)\n\n');
 fprintf('  OUT OF SCOPE FOR THIS HAND-CALC (recommend separately)  \n');
 fprintf('  - Bolt preload / joint-stiffness diagram across the operating\n');
@@ -366,7 +365,7 @@ fprintf('  SIZING COMPLETE  \n');
 %%  PARAMETRIC PLOTS
  
 
-figure('Position',[50 50 1300 850],'Name','Vessel Sizing — Parametric (Pressure-Only)');
+figure('Position',[50 50 1300 850],'Name','Vessel Sizing Parametric (Pressure-Only)');
 colors = lines(4); SF_sweep = [2 3 4 5];
 
 % Plot 1: SiC thickness vs plate radius, sweep SFs (pressure-only bending)
@@ -385,7 +384,7 @@ end
 plot(a_plate*1e3, t_SiC_nom*1e3,'ko','MarkerSize',9,'LineWidth',2,'DisplayName','Current design');
 grid on;
 xlabel('Plate Radius [mm]'); ylabel('SiC Thickness [mm]');
-title(sprintf('SiC Sizing — Pressure Bending Only (%s edge)',upper(SiC_edge_BC)));
+title(sprintf('SiC Sizing Pressure Bending Only (%s edge)',upper(SiC_edge_BC)));
 legend('Location','best','FontSize',7);
 
 %% Plot 2: Stress budget bar (MOR -> allowable -> actual)
@@ -433,7 +432,7 @@ grid on;
 xlabel('Operating Pressure [Pa]'); ylabel('Vessel Wall SF (von Mises)');
 title(sprintf('Vessel Wall SF vs Pressure (t_{wall}=%.1f mm, fixed)', t_wall_nom*1e3));
 
-sgtitle(sprintf('Vessel Sizing — Pressure-Only | R_{in}=%.0fmm, P=%.0f Pa, T=%.0f°C', ...
+sgtitle(sprintf('Vessel Sizing Pressure-Only | R_{in}=%.0fmm, P=%.0f Pa, T=%.0f°C', ...
         R_inner*1e3, P_operating, T_operating), ...
         'FontSize',10,'FontWeight','bold');
 
