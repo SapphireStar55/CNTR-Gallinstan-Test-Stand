@@ -11,8 +11,8 @@
 %
 % UNCERTAINTY BANDS added for γ (dominant uncertainty source):
 %   gamma_nom  = 0.535 N/m  (oxide-free EGaInSn at 200°C)
-%   gamma_low  = 0.400 N/m  (conservative — partial Ga₂O₃ oxidation present)
-%   gamma_high = 0.590 N/m  (upper bound — fully inert, RT brand value)
+%   gamma_low  = 0.400 N/m  (conservative partial Ga₂O₃ oxidation present)
+%   gamma_high = 0.590 N/m  (upper bound fully inert, RT brand value)
 %
 % MATERIAL COMPATIBILITY WARNING:
 %   316L SS is partially attacked by Ga alloys via liquid metal embrittlement.
@@ -43,7 +43,7 @@ T_K = temperature_C + 273.15;   % [K]
 
 % Gallinstan at 200°C
 % Surface tension: γ(T) = 587 - 0.0109*(T_K - 283.15) mN/m
-%   Plevachuk et al. (2014) J. Chem. Eng. Data 59, 757 — EGaInSn
+%   Plevachuk et al. (2014) J. Chem. Eng. Data 59, 757 EGaInSn
 %   Brand Galinstan(R) ~534 mN/m at RT (Handschuh-Wang 2022)
 % Three scenarios due to oxidation uncertainty:
 
@@ -56,8 +56,8 @@ gamma_gallinstan = gamma_nom;                         % ← NOMINAL used in all 
 rho_gallinstan = 6440 + (-0.60) * (temperature_C - 20);  % [kg/m³] at 200°C
 
 % Contact angles (non-wetting on clean SiC in inert atmosphere)
-contact_angle_adv_deg = 145;    % Advancing [°] — used for seepage calc (worst case entry)
-contact_angle_rec_deg = 120;    % Receding  [°] — lower bound once Ga has entered pore
+contact_angle_adv_deg = 145;    % Advancing [°] used for seepage calc (worst case entry)
+contact_angle_rec_deg = 120;    % Receding  [°] lower bound once Ga has entered pore
 
 % Nitrogen at 200°C, 1 atm  (NIST reference data)
 
@@ -210,7 +210,7 @@ fprintf('5. Bubble Formation Pressure (Young-Laplace):\n');
 fprintf('   ΔP_bubble  = %8.1f Pa  (%.5f bar, %.4f psi)\n\n', ...
         delta_P_bubble, delta_P_bubble/1e5, delta_P_bubble/6894.76);
 
-fprintf('  TOTAL REQUIRED PRESSURE — UNCERTAINTY RANGE  \n');
+fprintf('  TOTAL REQUIRED PRESSURE UNCERTAINTY RANGE  \n');
 fprintf('  γ_low  (%.3f N/m, oxidised)  : %8.1f Pa  (%.5f bar)  ← minimum credible\n', ...
         gamma_low,  delta_P_total_low,  delta_P_total_low/1e5);
 fprintf('  γ_nom  (%.3f N/m, oxide-free): %8.1f Pa  (%.5f bar)  ← DESIGN VALUE\n', ...
@@ -229,7 +229,7 @@ fprintf('    ✓ Support %.0f mm hydrostatic head of Galinstan\n', gallinstan_he
 fprintf('    ✓ Push N₂ through pores (viscous + inertial losses)\n');
 fprintf('    ✓ Form bubbles in Galinstan (Young-Laplace)\n');
 fprintf('  If O₂ contamination is present (γ drops to %.3f N/m),\n', gamma_low);
-fprintf('  required ΔP drops to %.1f Pa — capillary barrier weakens.\n', delta_P_total_low);
+fprintf('  required ΔP drops to %.1f Pa capillary barrier weakens.\n', delta_P_total_low);
 fprintf('  RISK: if θ < 90° due to oxidation, capillary barrier disappears entirely.\n\n');
 
 %%   COMPONENT BREAKDOWN  
@@ -385,7 +385,7 @@ xlabel('N₂ Flow Rate [cm³/s]'); ylabel('Total Required ΔP [Pa]');
 title('Sensitivity to N₂ Flow Rate');
 legend('Total ΔP','Current op. point','Location','best');
 
-sgtitle(sprintf('Gallinstan/SiC Bubbler — Corrected Properties (γ_{nom}=%.0f mN/m, ρ=%.0f kg/m³, T=%.0f°C)', ...
+sgtitle(sprintf('Gallinstan/SiC Bubbler Corrected Properties (γ_{nom}=%.0f mN/m, ρ=%.0f kg/m³, T=%.0f°C)', ...
         gamma_nom*1e3, rho_gallinstan, temperature_C), 'FontSize',11,'FontWeight','bold');
 
 fprintf('  CALCULATION COMPLETE  \n');
